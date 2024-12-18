@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import OtpInput from "../../components/opt";
 
 export default function Home() {
   const router = useRouter();
@@ -14,37 +15,51 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    setSuccess(false);
+    setError(""); // Clear any previous errors
+    setSuccess(false); // Clear success message
 
-    // Use the provided curl request data
-    const response = await fetch("https://assignment.stage.crafto.app/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        otp,
-      }),
-    });
+    try {
+      // Use the provided curl request data
+      const response = await fetch(
+        "https://assignment.stage.crafto.app/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            otp,
+          }),
+        }
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    setLoading(false);
-
-    if (response.ok) {
-      setSuccess(true);
-      router.push("/quote_lists");
-    } else {
-      setError(data?.message || "Something went wrong!");
+      if (response.ok) {
+        setSuccess(true);
+        console.log(data);
+        if (typeof window !== undefined) {
+          localStorage.setItem("token", JSON.stringify(data?.token));
+        }
+        router.push("/quote_lists");
+      } else {
+        setError(data?.message || "Something went wrong!"); // Set error from the response
+      }
+    } catch (error) {
+      console.error("Error during login request:", error);
+      setError("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+      <div className="w-full max-w-md sm:max-w-sm md:max-w-md lg:max-w-lg p-6 sm:p-8 bg-white shadow-md rounded-lg">
+        <h2 className="text-2xl sm:text-xl font-semibold text-center mb-6">
+          Login
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username Input */}
           <div>
@@ -72,14 +87,7 @@ export default function Home() {
             >
               OTP
             </label>
-            <input
-              id="otp"
-              type="text"
-              className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
+            <OtpInput value={otp} onChange={setOtp} />
           </div>
 
           {/* Submit Button */}
