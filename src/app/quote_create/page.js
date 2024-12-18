@@ -11,10 +11,6 @@ export default function CreateQuote() {
   const [imageUrl, setImageUrl] = useState("");
   const router = useRouter();
 
-  // Replace with actual token
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhbmR5IiwiaWF0IjoxNzM0NDc1MTMzLCJleHAiOjE3MzQ0Nzg3MzN9.EyxxJtvwcLtD6EGOkOqELKbIR3zfBSBQNPg7yT8u0-s";
-
   // Handle text input change
   const handleQuoteTextChange = (e) => {
     setQuoteText(e.target.value);
@@ -43,9 +39,7 @@ export default function CreateQuote() {
         "https://crafto.app/crafto/v1.0/media/assignment/upload",
         {
           method: "POST",
-          headers: {
-            // No need to set 'Content-Type' for FormData, it will be set automatically
-          },
+          headers: {},
           body: formData,
         }
       );
@@ -70,7 +64,6 @@ export default function CreateQuote() {
   // Handle quote submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(">>>>", quoteText, imageUrl);
     if (!quoteText || !imageUrl) {
       setError("Please provide both text and image.");
       return;
@@ -84,7 +77,10 @@ export default function CreateQuote() {
         {
           method: "POST",
           headers: {
-            Authorization: `${token}`,
+            Authorization:
+              typeof window !== undefined
+                ? JSON.parse(localStorage.getItem("token"))
+                : "",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -107,10 +103,19 @@ export default function CreateQuote() {
     }
   };
 
-  console.log("IMAGE", imageUrl);
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/");
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+      <button
+        className="absolute top-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         <h1 className="text-2xl font-semibold text-center mb-6">
           Create a Quote

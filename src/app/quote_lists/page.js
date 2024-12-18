@@ -11,12 +11,7 @@ export default function QuotesPage() {
   const [page, setPage] = useState(0);
   const router = useRouter();
 
-  // Replace this with the actual token
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhbmR5IiwiaWF0IjoxNzM0NDczNTAxLCJleHAiOjE3MzQ0NzcxMDF9.BwXDopaeYGlj_V2n3_I0VWk0zbmTlejaSTg0oOmbR3w";
-
   useEffect(() => {
-    // Fetch quotes based on the current page
     const fetchQuotes = async () => {
       if (!hasMore || loading) return;
 
@@ -32,7 +27,10 @@ export default function QuotesPage() {
           {
             method: "GET",
             headers: {
-              Authorization: token,
+              Authorization:
+                typeof window !== undefined
+                  ? JSON.parse(localStorage.getItem("token"))
+                  : "",
             },
           }
         );
@@ -40,7 +38,7 @@ export default function QuotesPage() {
         const data = await response.json();
 
         if (data?.data?.length === 0) {
-          setHasMore(false); // No more quotes, stop pagination
+          setHasMore(false);
         } else {
           setQuotes((prevQuotes) => [...prevQuotes, ...data?.data]);
         }
@@ -52,20 +50,30 @@ export default function QuotesPage() {
     };
 
     fetchQuotes();
-  }, [page, hasMore, token]);
+  }, [page, hasMore]);
 
-  // Handle "Load More" pagination
   const handleLoadMore = () => {
     if (hasMore) setPage((prevPage) => prevPage + 1);
   };
 
-  // Handle creating new quote
   const handleCreateQuote = () => {
     router.push("/quote_create"); // Navigate to the "Create Quote" page
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
+      <button
+        className="absolute top-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
+
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-semibold text-center mb-6">Quotes</h1>
 
@@ -73,7 +81,7 @@ export default function QuotesPage() {
         {error && <div className="text-red-500 text-center">{error}</div>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quotes.map((quote, index) => (
+          {quotes?.map((quote, index) => (
             <div
               key={index}
               className="relative bg-white rounded-lg shadow-lg overflow-hidden group"
